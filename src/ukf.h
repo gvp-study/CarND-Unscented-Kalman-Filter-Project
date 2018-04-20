@@ -30,9 +30,12 @@ public:
 
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;
+  ///* predicted sigma measurement matrix
+  MatrixXd Zsig_pred_;
 
   ///* time when the state is true, in us
   long long time_us_;
+  long long previous_time_us_;
 
   ///* Process noise standard deviation longitudinal acceleration in m/s^2
   double std_a_;
@@ -83,7 +86,55 @@ public:
    * @param meas_package The latest measurement data of either radar or laser
    */
   void ProcessMeasurement(MeasurementPackage meas_package);
-
+  /**
+   * Make the augmented state from the current state.
+   * @param Pointer to the returned augmented state vector.
+   */
+  void AugmentedSigmaPoints(MatrixXd* Xsig_out);
+  /**
+   * Make the prediction of the sigma points based on the plant model.
+   * @param Pointer to the sigma points before
+   * @param The delta time.
+   * @param Pointer to the sigma points after
+   */
+  void SigmaPointPrediction(MatrixXd* Xsig_in, double delta_t, MatrixXd* Xsig_out);
+  /**
+   * Make the prediction of the mean and covariance based on the plant model.
+   * @param Pointer to the sigma points before
+   * @param The pointer to the mean state vector x
+   * @param Pointer to the covariance matrix P
+   */
+  void PredictMeanAndCovariance(MatrixXd* Xsig_in, VectorXd* x_out, MatrixXd* P_out);
+  /**
+   * Make the prediction of the mean and covariance of the radar measurement.
+   * @param Pointer to the sigma points before
+   * @param The pointer to the mean measurement vector z
+   * @param Pointer to the measurement covariance matrix R
+   */
+  void PredictRadarMeasurement(MatrixXd* Xsig_in, VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out);
+  /**
+   * Make the prediction of the mean and covariance of the lidar measurement.
+   * @param Pointer to the sigma points before
+   * @param The pointer to the mean measurement vector z
+   * @param Pointer to the measurement covariance matrix R
+   */
+  void PredictLidarMeasurement(MatrixXd* Xsig_in, VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out);
+  /**
+   * Make the prediction of the mean and covariance of the radar measurement.
+   * @param Pointer to the sigma points before
+   * @param The pointer to the mean measurement vector z
+   * @param Pointer to the measurement covariance matrix R
+   */
+  void UpdateStateRadar(MatrixXd* Xsig_in, VectorXd* z_in, VectorXd* z_pred_in, MatrixXd* Zsig_in,
+			MatrixXd* S_in, VectorXd* x_out, MatrixXd* P_out);
+  /**
+   * Make the prediction of the mean and covariance of the lidar measurement.
+   * @param Pointer to the sigma points before
+   * @param The pointer to the mean measurement vector z
+   * @param Pointer to the measurement covariance matrix R
+   */
+  void UpdateStateLidar(MatrixXd* Xsig_in, VectorXd* z_in, VectorXd* z_pred_in, MatrixXd* Zsig_in,
+			MatrixXd* S_in, VectorXd* x_out, MatrixXd* P_out);
   /**
    * Prediction Predicts sigma points, the state, and the state covariance
    * matrix
@@ -105,3 +156,4 @@ public:
 };
 
 #endif /* UKF_H */
+

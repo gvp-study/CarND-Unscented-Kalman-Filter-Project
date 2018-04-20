@@ -15,4 +15,8 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   TODO:
     * Calculate the RMSE here.
   */
+  VectorXd dx(4);
+  dx.setZero();
+  cout << "RMSE " << dx << endl;
+  return dx;
 }
