@@ -58,6 +58,15 @@ UKF::UKF() {
   n_x_ = 5;
   n_aug_ = 7;
   lambda_ = 3 - n_x_;
+  //create vector for weights
+  VectorXd weights_ = VectorXd(2*n_aug_+1);
+  // set weights_
+  double weight_0 = lambda_/(lambda_+n_aug_);
+  weights_(0) = weight_0;
+  for (int i=1; i<2*n_aug_+1; i++) {  //2n+1 weights_
+    double weight = 0.5/(n_aug_+lambda_);
+    weights_(i) = weight;
+  }
   
   // Plant Covariance
   P_ = MatrixXd::Identity(n_x_, n_x_);
@@ -464,17 +473,8 @@ void UKF::PredictRadarMeasurement(MatrixXd* Xsig_in, VectorXd* z_out, MatrixXd* 
   int n_z = 3;
 
   //define spreading parameter
-  double lambda = 3 - n_aug;
-
-  //set vector for weights
-  VectorXd weights = VectorXd(2*n_aug+1);
-   double weight_0 = lambda/(lambda+n_aug);
-  weights(0) = weight_0;
-  for (int i=1; i<2*n_aug+1; i++) {  
-    double weight = 0.5/(n_aug+lambda);
-    weights(i) = weight;
-  }
-  weights_ = weights;
+  VectorXd weights = weights_;
+  
   //radar measurement noise standard deviation radius in m
   double std_radr = std_radr_;
 
@@ -574,16 +574,7 @@ void UKF::UpdateStateRadar(MatrixXd* Xsig_in, VectorXd* z_in, VectorXd* z_pred_i
   int n_z = 3;
 
   //define spreading parameter
-  double lambda = 3 - n_aug;
-
-  //set vector for weights
-  VectorXd weights = VectorXd(2*n_aug+1);
-   double weight_0 = lambda/(lambda+n_aug);
-  weights(0) = weight_0;
-  for (int i=1; i<2*n_aug+1; i++) {  //2n+1 weights
-    double weight = 0.5/(n_aug+lambda);
-    weights(i) = weight;
-  }
+  VectorXd weights = weights_;
 
   //create example matrix with predicted sigma points
   MatrixXd Xsig_pred = *Xsig_in;
@@ -667,17 +658,8 @@ void UKF::PredictLidarMeasurement(MatrixXd* Xsig_in, VectorXd* z_out, MatrixXd* 
   int n_z = 2;
 
   //define spreading parameter
-  double lambda = 3 - n_aug;
+  VectorXd weights = weights_;
 
-  //set vector for weights
-  VectorXd weights = VectorXd(2*n_aug+1);
-  double weight_0 = lambda/(lambda+n_aug);
-  weights(0) = weight_0;
-  for (int i=1; i<2*n_aug+1; i++) {  
-    double weight = 0.5/(n_aug+lambda);
-    weights(i) = weight;
-  }
-  weights_ = weights;
   //laser measurement noise standard deviation in m in X.
   double std_laspx = std_laspx_;
 
@@ -764,16 +746,7 @@ void UKF::UpdateStateLidar(MatrixXd* Xsig_in, VectorXd* z_in, VectorXd* z_pred_i
   int n_z = 2;
 
   //define spreading parameter
-  double lambda = 3 - n_aug;
-
-  //set vector for weights
-  VectorXd weights = VectorXd(2*n_aug+1);
-   double weight_0 = lambda/(lambda+n_aug);
-  weights(0) = weight_0;
-  for (int i=1; i<2*n_aug+1; i++) {  //2n+1 weights
-    double weight = 0.5/(n_aug+lambda);
-    weights(i) = weight;
-  }
+  VectorXd weights = weights_;
 
   //create example matrix with predicted sigma points
   MatrixXd Xsig_pred = *Xsig_in;
