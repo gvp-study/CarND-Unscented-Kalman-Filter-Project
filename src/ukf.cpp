@@ -77,22 +77,48 @@ UKF::~UKF() {}
  * @param {MeasurementPackage} meas_package The latest measurement data of
  * either radar or laser.
  */
-void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
+void UKF::ProcessMeasurement(MeasurementPackage measurement_pack) {
   /**
   TODO:
 
   Complete this function! Make sure you switch between lidar and radar
   measurements.
   */
-  time_us_ = meas_package.timestamp_;
+  time_us_ = measurement_pack.timestamp_;
   // Find the delta t
   double dt = (time_us_ - previous_time_us_) / 1000000.0;	//dt - expressed in seconds
   if(!is_initialized_)
   {
+    // Try to initialize from the first measurement
+    if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+      //
+      //Convert radar from polar to cartesian coordinates and initialize state.
+      //
+      double r = measurement_pack.raw_measurements_[0];
+      double phi = measurement_pack.raw_measurements_[1];
+      double rdot = measurement_pack.raw_measurements_[2];
+      x_(0) = r * cos(phi);
+      x_(1) = r * sin(phi);
+      x_(2) = rdot;
+      x_(3) = phi;
+      x_(4) = 0.0;
+
+    }
+    else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
+      //
+      //Initialize state.
+      //
+      x_(0) = measurement_pack.raw_measurements_[0];
+      x_(1) = measurement_pack.raw_measurements_[1];
+      x_(2) = 0.0;
+      x_(3) = 0.0;
+      x_(4) = 0.0;
+    }
+
     dt = 0.0;
     is_initialized_ = true;
   }
-  previous_time_us_ = meas_package.timestamp_;
+  previous_time_us_ = measurement_pack.timestamp_;
   cout << "Now " << time_us_ << " Old " << previous_time_us_ << " DT " << dt << endl;
   //
   // Predict using the delta t
@@ -101,12 +127,12 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   //
   // Update using measurements.
   //
-  if (meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_) {
+  if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR && use_radar_) {
     // Radar updates
-    UpdateRadar(meas_package);
-  } else if(meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_) {
+    UpdateRadar(measurement_pack);
+  } else if(measurement_pack.sensor_type_ == MeasurementPackage::LASER && use_laser_) {
     // Laser updates
-    UpdateLidar(meas_package);
+    UpdateLidar(measurement_pack);
   }
   
   // print the output
@@ -145,7 +171,7 @@ void UKF::Prediction(double delta_t) {
 
 /**
  * Updates the state and the state covariance matrix using a laser measurement.
- * @param {MeasurementPackage} meas_package
+ * @param {MeasurementPackage} measurement_pack
  */
 void UKF::UpdateLidar(MeasurementPackage measurement_pack) {
   /**
@@ -180,7 +206,7 @@ void UKF::UpdateLidar(MeasurementPackage measurement_pack) {
 
 /**
  * Updates the state and the state covariance matrix using a radar measurement.
- * @param {MeasurementPackage} meas_package
+ * @param {MeasurementPackage} measurement_pack
  */
 void UKF::UpdateRadar(MeasurementPackage measurement_pack) {
   /**
