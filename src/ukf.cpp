@@ -59,7 +59,7 @@ UKF::UKF() {
   n_aug_ = 7;
   lambda_ = 3 - n_x_;
   //create vector for weights
-  VectorXd weights_ = VectorXd(2*n_aug_+1);
+  weights_ = VectorXd(2*n_aug_+1);
   // set weights_
   double weight_0 = lambda_/(lambda_+n_aug_);
   weights_(0) = weight_0;
@@ -67,7 +67,6 @@ UKF::UKF() {
     double weight = 0.5/(n_aug_+lambda_);
     weights_(i) = weight;
   }
-  
   // Plant Covariance
   P_ = MatrixXd::Identity(n_x_, n_x_);
   // Sigma point matrix
@@ -78,6 +77,7 @@ UKF::UKF() {
   cout << "x" << x_ << endl;
   cout << "P" << endl << P_ << endl;
   cout << "Xsig_pred" << endl << Xsig_pred_ << endl;
+  cout << "weights" << endl << weights_ << endl;
 }
 
 UKF::~UKF() {}
@@ -128,7 +128,6 @@ void UKF::ProcessMeasurement(MeasurementPackage measurement_pack) {
     is_initialized_ = true;
   }
   previous_time_us_ = measurement_pack.timestamp_;
-  cout << "Now " << time_us_ << " Old " << previous_time_us_ << " DT " << dt << endl;
   //
   // Predict using the delta t
   //
@@ -145,8 +144,9 @@ void UKF::ProcessMeasurement(MeasurementPackage measurement_pack) {
   }
   
   // print the output
-  cout << "x_ = " << x_ << endl;
-  cout << "P_ = " << P_ << endl;
+  cout << "Now " << time_us_ << " Old " << previous_time_us_ << " DT " << dt << endl;
+  cout << "x_\n" << x_ << endl;
+  cout << "P_\n" << P_ << endl;
 
 }
 
@@ -166,10 +166,9 @@ void UKF::Prediction(double delta_t) {
   MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
   MatrixXd Xsig_pred;
   AugmentedSigmaPoints(&Xsig_aug);
-  cout << "XAug " << endl << Xsig_aug << endl;
+  cout << "Xsig Augmented" << endl << Xsig_aug << endl;
   SigmaPointPrediction(&Xsig_aug, delta_t, &Xsig_pred);
-  cout << "X Predicted for time " << delta_t << endl <<  Xsig_pred << endl;
-//  x_ = Xsig_pred.col(0);
+  cout << "Xsig Predicted for time " << delta_t << endl <<  Xsig_pred << endl;
   VectorXd x_out;
   MatrixXd P_out;
   PredictMeanAndCovariance(&Xsig_pred, &x_out, &P_out);
@@ -381,12 +380,6 @@ void UKF::SigmaPointPrediction(MatrixXd* Xsig_in, double delta_t, MatrixXd* Xsig
     Xsig_pred(3, i) = yaw_p;
     Xsig_pred(4, i) = yawd_p;
   }
-/*******************************************************************************
- * Student part end
- ******************************************************************************/
-
-  //print result
-  std::cout << "Xsig_pred = " << std::endl << Xsig_pred << std::endl;
 
   //write result
   *Xsig_out = Xsig_pred;
@@ -401,14 +394,11 @@ void UKF::PredictMeanAndCovariance(MatrixXd* Xsig_in, VectorXd* x_out, MatrixXd*
   //set augmented dimension
   int n_aug = n_aug_;
 
-  //define spreading parameter
-  double lambda = 3 - n_aug;
-
   //create example matrix with predicted sigma points
   MatrixXd Xsig_pred = *Xsig_in;
 
   //create vector for weights
-  VectorXd weights = VectorXd(2*n_aug+1);
+  VectorXd weights = weights_;
   
   //create vector for predicted state
   VectorXd x = VectorXd(n_x);
@@ -420,14 +410,6 @@ void UKF::PredictMeanAndCovariance(MatrixXd* Xsig_in, VectorXd* x_out, MatrixXd*
 /*******************************************************************************
  * Student part begin
  ******************************************************************************/
-
-  // set weights
-  double weight_0 = lambda/(lambda+n_aug);
-  weights(0) = weight_0;
-  for (int i=1; i<2*n_aug+1; i++) {  //2n+1 weights
-    double weight = 0.5/(n_aug+lambda);
-    weights(i) = weight;
-  }
 
   //predicted state mean
   x.fill(0.0);
@@ -688,17 +670,16 @@ void UKF::PredictLidarMeasurement(MatrixXd* Xsig_in, VectorXd* z_out, MatrixXd* 
     Zsig(0,i) = p_x;
     Zsig(1,i) = p_y;
   }
-  std::cout << "Zsig Laser: " << std::endl << Zsig << std::endl;
   
   *Zsig_out = Zsig;
+  std::cout << "Zsig Laser: " << std::endl << Zsig << std::endl;
   
   //mean predicted measurement
   VectorXd z_pred = VectorXd(n_z);
   z_pred.fill(0.0);
   for (int i=0; i < 2*n_aug+1; i++) {
-      z_pred = z_pred + weights(i) * Zsig.col(i);
+    z_pred = z_pred + weights(i) * Zsig.col(i);
   }
-
   //innovation covariance matrix S
   MatrixXd S = MatrixXd(n_z,n_z);
   S.fill(0.0);
