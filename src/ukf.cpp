@@ -26,7 +26,7 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 3;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
   std_yawdd_ = 30;
@@ -96,6 +96,7 @@ void UKF::ProcessMeasurement(MeasurementPackage measurement_pack) {
   time_us_ = measurement_pack.timestamp_;
   // Find the delta t
   double dt = (time_us_ - previous_time_us_) / 1000000.0;	//dt - expressed in seconds
+  previous_time_us_ = time_us_;
   if(!is_initialized_)
   {
     // Try to initialize from the first measurement
@@ -120,14 +121,14 @@ void UKF::ProcessMeasurement(MeasurementPackage measurement_pack) {
       x_(0) = measurement_pack.raw_measurements_[0];
       x_(1) = measurement_pack.raw_measurements_[1];
       x_(2) = 0.0;
-      x_(3) = 0.0;
+      x_(3) = 0.0; //atan2(x_(1), x_(0));
       x_(4) = 0.0;
     }
 
     dt = 0.0;
     is_initialized_ = true;
+    return;
   }
-  previous_time_us_ = measurement_pack.timestamp_;
   //
   // Predict using the delta t
   //
@@ -616,6 +617,10 @@ void UKF::UpdateStateRadar(MatrixXd* Xsig_in, VectorXd* z_in, VectorXd* z_pred_i
 
   //update state mean and covariance matrix
   x = x + K * z_diff;
+  std::cout << "Innovation Radar state dx: " << std::endl << K*z_diff << std::endl;
+  while (x(3)> M_PI) x(3)-=2.*M_PI;
+  while (x(3)<-M_PI) x(3)+=2.*M_PI;
+
   P = P - K*S*K.transpose();
 
 /*******************************************************************************
@@ -780,6 +785,11 @@ void UKF::UpdateStateLidar(MatrixXd* Xsig_in, VectorXd* z_in, VectorXd* z_pred_i
 
   //update state mean and covariance matrix
   x = x + K * z_diff;
+  std::cout << "Innovation Lidar state dx: " << std::endl << K*z_diff << std::endl;
+
+  while (x(3)> M_PI) x(3)-=2.*M_PI;
+  while (x(3)<-M_PI) x(3)+=2.*M_PI;
+  
   P = P - K*S*K.transpose();
 
 /*******************************************************************************
