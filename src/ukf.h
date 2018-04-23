@@ -74,7 +74,7 @@ public:
   /**
    * Constructor
    */
-  UKF();
+  UKF(float a=30.0, float b=30.0);
 
   /**
    * Destructor

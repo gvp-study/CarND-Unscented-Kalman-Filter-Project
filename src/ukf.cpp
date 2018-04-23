@@ -11,8 +11,8 @@ using std::vector;
  * Initializes Unscented Kalman filter
  * This is scaffolding, do not modify
  */
-UKF::UKF() {
-  cout << "UKF Initialing" << endl;
+UKF::UKF(float a, float b) {
+  cout << "UKF Initializing" << endl;
   // if this is false, laser measurements will be ignored (except during init)
   use_laser_ = true;
 
@@ -26,10 +26,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 3;
+  std_a_ = a;//3;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = b;//30;
   
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m

@@ -25,20 +25,43 @@ std::string hasData(std::string s) {
   }
   return "";
 }
+float std_a=30.0, std_yawdd=30.0;
+VectorXd g_RMSE;
 
-int main()
+void int_handler(int x)
+{
+  FILE* fp;
+  fp = fopen("rmse.txt", "a+");
+  fprintf(fp, "%.2f %.2f \t%.2f %.2f %.2f %.2f\n",
+	  std_a, std_yawdd, g_RMSE(0), g_RMSE(1), g_RMSE(2), g_RMSE(3));
+  fclose(fp);
+  cout << std_a << " " << std_yawdd << " " << g_RMSE(0) << " " << g_RMSE(1) << " "
+	 << g_RMSE(2) << " " << g_RMSE(3) << endl;
+  exit(0);
+}
+
+int main(int argc, char** argv)
 {
   uWS::Hub h;
 
+  if(argc > 1)
+    std_a = atof(argv[1]);
+  if(argc > 2)
+    std_yawdd = atof(argv[2]);
+
+  signal(SIGINT,int_handler);
+
+
   // Create a Kalman Filter instance
-  UKF ukf;
+  UKF ukf(std_a, std_yawdd);
+  VectorXd rmse;
 
   // used to compute the RMSE later
   Tools tools;
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&ukf,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws,
+  h.onMessage([&rmse,&ukf,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws,
 						       char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -128,7 +151,9 @@ int main()
     	  estimations.push_back(estimate);
 
     	  VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
-
+	  rmse = RMSE;
+	  g_RMSE = RMSE;
+	  
           json msgJson;
           msgJson["estimate_x"] = p_x;
           msgJson["estimate_y"] = p_y;
@@ -137,7 +162,7 @@ int main()
           msgJson["rmse_vx"] = RMSE(2);
           msgJson["rmse_vy"] = RMSE(3);
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          std::cout << "RMSE" << std::endl << RMSE << endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 	  
         }
@@ -173,7 +198,12 @@ int main()
     ws.close();
     std::cout << "Disconnected" << std::endl;
   });
-
+/*
+  h.onError([&h](std::function<void(std::conditional<uWS::SERVER> ws, int code, void *>::type)> handler) {
+        std::cout << "FAILURE: Connection failed! Timeout?" << std::endl;
+        exit(-1);
+  });
+*/
   int port = 4567;
   if (h.listen(port))
   {
@@ -184,6 +214,9 @@ int main()
     std::cerr << "Failed to listen to port" << std::endl;
     return -1;
   }
+
   h.run();
+
+
 }
 
