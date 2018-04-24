@@ -13,8 +13,22 @@ with open('build/lidar-nis.txt', "r") as file:
         lnis.append(float(line.split()[0]))
 lnis = lnis[1:];
 
-fig = plt.figure()
+fig = plt.figure(1)
 plt.plot(rnis)
-plt.plot(lnis)
+plt.ylabel('NIS value')
+plt.xlabel('Time')
+plt.title('Normalized Innovation Squared (NIS) for Radar')
 plt.grid()
-plt.show()
+plt.plot(rnis)
+
+fig.show()
+
+fig2 = plt.figure(2)
+plt.plot(lnis, 'b')
+plt.ylabel('NIS value')
+plt.xlabel('Time')
+plt.title('Normalized Innovation Squared (NIS) for Laser')
+plt.grid()
+plt.plot(lnis)
+
+fig2.show()
