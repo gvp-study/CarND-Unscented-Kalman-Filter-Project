@@ -108,7 +108,7 @@ void UKF::ProcessMeasurement(MeasurementPackage measurement_pack) {
       //
       double r = measurement_pack.raw_measurements_[0];
       double phi = measurement_pack.raw_measurements_[1];
-      double rdot = measurement_pack.raw_measurements_[2];
+//      double rdot = measurement_pack.raw_measurements_[2];
       x_(0) = r * cos(phi);
       x_(1) = r * sin(phi);
       x_(2) = 0.0;
@@ -231,7 +231,7 @@ void UKF::Prediction(double delta_t) {
   std::cout << "Xsig_aug = " << std::endl << Xsig_aug << std::endl;
   std::cout << "P_aug = " << std::endl << P_aug << std::endl;
 
-/*----------------------------------------------------------------------------*/
+  /*----------------------------------------------------------------------------*/
 
   //create matrix with predicted sigma points as columns
   MatrixXd Xsig_pred = MatrixXd(n_x, 2 * n_aug + 1);
@@ -471,6 +471,7 @@ void UKF::UpdateLidar(MeasurementPackage measurement_pack) {
   P = P - K*S*K.transpose();
 
   double e = z_diff.transpose() * Sinv * z_diff;
+  lidar_nis_.push_back(e);
 /*******************************************************************************
  * Student part end
  ******************************************************************************/
@@ -652,6 +653,7 @@ void UKF::UpdateRadar(MeasurementPackage measurement_pack) {
   P = P - K*S*K.transpose();
 
   double e = z_diff.transpose() * Sinv * z_diff;
+  radar_nis_.push_back(e);
 /*******************************************************************************
  * Student part end
  ******************************************************************************/

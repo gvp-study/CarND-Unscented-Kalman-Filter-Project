@@ -27,6 +27,7 @@ std::string hasData(std::string s) {
 }
 float std_a=30.0, std_yawdd=30.0;
 VectorXd g_RMSE;
+UKF* ukf_ptr = NULL;
 
 void int_handler(int x)
 {
@@ -37,6 +38,23 @@ void int_handler(int x)
   fclose(fp);
   cout << std_a << " " << std_yawdd << " " << g_RMSE(0) << " " << g_RMSE(1) << " "
 	 << g_RMSE(2) << " " << g_RMSE(3) << endl;
+
+  fp = fopen("lidar-nis.txt", "w");
+  int n = ukf_ptr->lidar_nis_.size();
+  for(int i = 0; i < n; i++)
+  {
+    fprintf(fp, "%.2f\n",ukf_ptr->lidar_nis_[i]);
+  }
+  fclose(fp);
+
+  fp = fopen("radar-nis.txt", "w");
+  n = ukf_ptr->radar_nis_.size();
+  for(int i = 0; i < n; i++)
+  {
+    fprintf(fp, "%.2f\n",ukf_ptr->radar_nis_[i]);
+  }
+  fclose(fp);
+
   exit(0);
 }
 
@@ -54,6 +72,7 @@ int main(int argc, char** argv)
 
   // Create a Kalman Filter instance
   UKF ukf(std_a, std_yawdd);
+  ukf_ptr = &ukf;
   VectorXd rmse;
 
   // used to compute the RMSE later
