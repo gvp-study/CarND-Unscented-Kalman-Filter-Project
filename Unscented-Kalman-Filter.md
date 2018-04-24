@@ -24,7 +24,8 @@ All the code for this project has been derived from the example code in the cour
 The code in the directory compiles without errors using cmake .. && make.
 
 #### 2. Accuracy
-The root mean squared error for the DataSet1 (px, py, vx, vy) is [0.07 0.08 0.34 0.23] <= [.09, .10, .40, .30]. This can be seen from the standard output when it runs ./UnscentedEKF program with the simulator running. The final values can also be seen in the right side of the figure below.
+After some experimentation with the values of the standard deviation of the error in the linear and angular accelerations, I found a good value to be std_a=2.0 and std_yawdd=0.5.
+The root mean squared error for the DataSet1 (px, py, vx, vy) with these error values is [0.07 0.08 0.34 0.23] <= [.09, .10, .40, .30]. This can be seen from the standard output when it runs ./UnscentedEKF program with the simulator running. The final values can also be seen in the right side of the figure below.
 I also tried the run with the second DataSet2 and the resulting MSEE was [0.09 0.07 0.66 0.31].
 
 ![alt text][image1]
