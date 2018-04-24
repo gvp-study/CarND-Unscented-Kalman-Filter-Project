@@ -200,7 +200,7 @@ void UKF::Prediction(double delta_t) {
   Xsig_aug.setZero();
 
 /*******************************************************************************
- * Student part begin
+ * Augmented Sigma Points
  ******************************************************************************/
  
   //create augmented mean state
@@ -223,21 +223,16 @@ void UKF::Prediction(double delta_t) {
     Xsig_aug.col(i+1)       = x_aug + factor * S.col(i);
     Xsig_aug.col(i+1+n_aug) = x_aug - factor * S.col(i);
   }
-/*******************************************************************************
- * Student part end
- ******************************************************************************/
-
   //print result
   std::cout << "Xsig_aug = " << std::endl << Xsig_aug << std::endl;
   std::cout << "P_aug = " << std::endl << P_aug << std::endl;
 
-  /*----------------------------------------------------------------------------*/
 
   //create matrix with predicted sigma points as columns
   MatrixXd Xsig_pred = MatrixXd(n_x, 2 * n_aug + 1);
 
 /*******************************************************************************
- * Student part begin
+ * Sigma Point Prediction.
  ******************************************************************************/
 
   //predict sigma points
@@ -283,10 +278,9 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred(3, i) = yaw_p;
     Xsig_pred(4, i) = yawd_p;
   }
-/*----------------------------------------------------------------------------*/
 
 /*******************************************************************************
- * Student part begin
+ * Predict Mean and Covariance from the Sigma Points
  ******************************************************************************/
   VectorXd weights = weights_;
   
@@ -308,11 +302,6 @@ void UKF::Prediction(double delta_t) {
 
     P = P + weights(i) * x_diff * x_diff.transpose() ;
   }
-
-
-/*******************************************************************************
- * Student part end
- ******************************************************************************/
 
   //print result
   std::cout << "Predicted state" << std::endl;
@@ -373,7 +362,7 @@ void UKF::UpdateLidar(MeasurementPackage measurement_pack) {
   Zsig.setZero();
 
 /*******************************************************************************
- * Student part begin
+ * Predict Lidar Measurements from Sigma Points
  ******************************************************************************/
 
   //transform sigma points into measurement space
@@ -417,10 +406,6 @@ void UKF::UpdateLidar(MeasurementPackage measurement_pack) {
 
   S = S + R;
   
-/*******************************************************************************
- * Student part end
- ******************************************************************************/
-
   //print result
   std::cout << "z_pred Laser: " << std::endl << z_pred << std::endl;
   std::cout << "S Laser: " << std::endl << S << std::endl;
@@ -435,7 +420,7 @@ void UKF::UpdateLidar(MeasurementPackage measurement_pack) {
   MatrixXd Tc = MatrixXd(n_x, n_z);
 
 /*******************************************************************************
- * Student part begin
+ * Update State from the Measurement
  ******************************************************************************/
 
   //calculate cross correlation matrix
@@ -469,12 +454,11 @@ void UKF::UpdateLidar(MeasurementPackage measurement_pack) {
   while (x(3)<-M_PI) x(3)+=2.*M_PI;
   
   P = P - K*S*K.transpose();
-
+  //
+  // Compute the Normalized Innovation Squared value (NIS).
+  //
   double e = z_diff.transpose() * Sinv * z_diff;
   lidar_nis_.push_back(e);
-/*******************************************************************************
- * Student part end
- ******************************************************************************/
 
   //print result
   std::cout << "Updated state x: " << std::endl << x << std::endl;
@@ -532,7 +516,7 @@ void UKF::UpdateRadar(MeasurementPackage measurement_pack) {
   Zsig.setZero();
 
 /*******************************************************************************
- * Student part begin
+ * Predict Radar Measurements from Sigma Points
  ******************************************************************************/
 
   //transform sigma points into measurement space
@@ -585,15 +569,10 @@ void UKF::UpdateRadar(MeasurementPackage measurement_pack) {
           0, 0,std_radrd*std_radrd;
   S = S + R;
   
-/*******************************************************************************
- * Student part end
- ******************************************************************************/
 
   //print result
   std::cout << "z_pred Radar: " << std::endl << z_pred << std::endl;
   std::cout << "S Radar: " << std::endl << S << std::endl;
-
-/*----------------------------------------------------------------------------*/
   
   //create example vector for predicted state mean
   VectorXd x = x_;
@@ -611,7 +590,7 @@ void UKF::UpdateRadar(MeasurementPackage measurement_pack) {
   z << r, phi, rdot;
 
 /*******************************************************************************
- * Student part begin
+ * Update State from the Measurement
  ******************************************************************************/
 
   //calculate cross correlation matrix
@@ -651,12 +630,11 @@ void UKF::UpdateRadar(MeasurementPackage measurement_pack) {
   while (x(3)<-M_PI) x(3)+=2.*M_PI;
 
   P = P - K*S*K.transpose();
-
+  //
+  // Compute the Normalized Innovation Squared value (NIS).
+  //
   double e = z_diff.transpose() * Sinv * z_diff;
   radar_nis_.push_back(e);
-/*******************************************************************************
- * Student part end
- ******************************************************************************/
 
   //print result
   std::cout << "Updated state x: " << std::endl << x << std::endl;
