@@ -25,12 +25,17 @@ std::string hasData(std::string s) {
   }
   return "";
 }
-float std_a=30.0, std_yawdd=30.0;
+float std_a=2.0, std_yawdd=0.5;
 VectorXd g_RMSE;
 UKF* ukf_ptr = NULL;
-
+/**
+ * Exit with Control-C but only after saving data.
+ */
 void int_handler(int x)
 {
+  //
+  // Append the RMSE to a file to analyze the effect of std_a and std_yawdd on RMSEE
+  //
   FILE* fp;
   fp = fopen("rmse.txt", "a+");
   fprintf(fp, "%.2f %.2f \t%.2f %.2f %.2f %.2f\n",
@@ -38,7 +43,9 @@ void int_handler(int x)
   fclose(fp);
   cout << std_a << " " << std_yawdd << " " << g_RMSE(0) << " " << g_RMSE(1) << " "
 	 << g_RMSE(2) << " " << g_RMSE(3) << endl;
-
+  //
+  // Save the lidar NIS to file
+  //
   fp = fopen("lidar-nis.txt", "w");
   int n = ukf_ptr->lidar_nis_.size();
   for(int i = 0; i < n; i++)
@@ -46,7 +53,9 @@ void int_handler(int x)
     fprintf(fp, "%.2f\n",ukf_ptr->lidar_nis_[i]);
   }
   fclose(fp);
-
+  //
+  // Save the radar NIS to file
+  //
   fp = fopen("radar-nis.txt", "w");
   n = ukf_ptr->radar_nis_.size();
   for(int i = 0; i < n; i++)
@@ -61,14 +70,17 @@ void int_handler(int x)
 int main(int argc, char** argv)
 {
   uWS::Hub h;
-
+  //
+  // First arg is std_a and second is std_yawdd
+  //
   if(argc > 1)
     std_a = atof(argv[1]);
   if(argc > 2)
     std_yawdd = atof(argv[2]);
-
+  //
+  // Save file on Control-C
+  //
   signal(SIGINT,int_handler);
-
 
   // Create a Kalman Filter instance
   UKF ukf(std_a, std_yawdd);
@@ -217,12 +229,7 @@ int main(int argc, char** argv)
     ws.close();
     std::cout << "Disconnected" << std::endl;
   });
-/*
-  h.onError([&h](std::function<void(std::conditional<uWS::SERVER> ws, int code, void *>::type)> handler) {
-        std::cout << "FAILURE: Connection failed! Timeout?" << std::endl;
-        exit(-1);
-  });
-*/
+
   int port = 4567;
   if (h.listen(port))
   {
